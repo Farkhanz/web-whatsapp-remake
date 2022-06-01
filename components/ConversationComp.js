@@ -1,4 +1,6 @@
+import React, {useState} from 'react';
 import styled from 'styled-components';
+import Picker from 'emoji-picker-react';
 import { SearchContainer, SearchInput } from './ContactListComp';
 import { messagesList } from '../mockData';
 
@@ -71,14 +73,35 @@ border-radius: 4px;
 
 const ConversationComp = (props) => {
     const {selectedChat} = props;
+    const [text,setText] = useState("");
+    const [pickerVisible, togglepicker] = useState(false);
+    const [messageList,setMessageList] = useState(messagesList);
 
+    const onEmojiClick =(event,emojiObject)=>{
+        setText(text + emojiObject.emoji);
+        togglepicker(false);
+    };
+    const onEnterPress = (event) => {
+        if (event.key === "Enter") {
+            const messages = [...messageList];
+            messages.push({
+                id: 0,
+                messageType: "TEXT",
+                text,
+                senderID: 0,
+                addedOn: "14:08",
+            });
+            setMessageList(messages);
+            setText("");
+        }
+    }
     return <Container>
         <ProfileHead>
             <ProfileIcon src={selectedChat.profilePic} />
             {selectedChat.name}
         </ProfileHead>
         <MessageContainer>
-            {messagesList.map((messageData) => (
+            {messageList.map((messageData) => (
             <MessageDiv isYours={messageData.senderID === 0}>
                 <Message isYours={messageData.senderID === 0}>{messageData.text}</Message>
             </MessageDiv>    
@@ -89,8 +112,12 @@ const ConversationComp = (props) => {
         </MessageContainer>
         <ChatBox>
             <SearchContainer>
-                <EmojiImage src='emojismile.png' />
-                <SearchInput placeholder="Type a your message..." />
+                {pickerVisible && (
+                <Picker 
+                pickerStyle={{position: "absolute", bottom: "60px"}}
+                onEmojiClick={onEmojiClick} />)}
+                <EmojiImage src='emojismile.png' onClick={()=>togglepicker(!pickerVisible)}/>
+                <SearchInput placeholder="Type a your message..." value={text} onKeyDown={onEnterPress} onChange={(e)=>setText(e.target.value)} />
             </SearchContainer>
         </ChatBox>
     </Container>
